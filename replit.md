@@ -5,6 +5,7 @@ This is an ISBN book search application that allows users to search for book inf
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Language: Turkish (user prefers responses in Turkish)
 
 # System Architecture
 
