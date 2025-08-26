@@ -155,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalItems: session.totalItems,
         processedItems: session.processedItems,
         successfulItems: session.successfulItems,
-        progress: session.totalItems > 0 ? Math.round((session.processedItems / session.totalItems) * 100) : 0,
+        progress: (session.totalItems || 0) > 0 ? Math.round(((session.processedItems || 0) / (session.totalItems || 1)) * 100) : 0,
       });
     } catch (error) {
       console.error('Progress check error:', error);

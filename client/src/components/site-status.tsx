@@ -97,7 +97,7 @@ export function SiteStatus() {
             </div>
           ))
         ) : (
-          statusData?.sites?.map((site: SiteStatusType, index: number) => (
+          statusData && typeof statusData === 'object' && 'sites' in statusData && Array.isArray(statusData.sites) ? statusData.sites.map((site: SiteStatusType, index: number) => (
             <div 
               key={site.name} 
               className="flex items-center justify-between p-4 border border-slate-200 rounded-lg"
@@ -118,7 +118,7 @@ export function SiteStatus() {
                 </span>
               </div>
             </div>
-          ))
+          )) : null
         )}
       </div>
     </Card>

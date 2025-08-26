@@ -19,7 +19,7 @@ export class ISBNSearchService {
 
   async searchSingle(isbn: string): Promise<SearchResponse> {
     // Try each scraper until we find a result
-    for (const [siteName, scraper] of this.scrapers) {
+    for (const [siteName, scraper] of Array.from(this.scrapers.entries())) {
       try {
         console.log(`Searching ${siteName} for ISBN: ${isbn}`);
         const result = await scraper.search(isbn);
@@ -117,7 +117,7 @@ export class ISBNSearchService {
   async getSiteStatus() {
     const sites = [];
     
-    for (const [siteName, scraper] of this.scrapers) {
+    for (const [siteName, scraper] of Array.from(this.scrapers.entries())) {
       try {
         const status = await scraper.checkStatus();
         sites.push({

@@ -52,6 +52,7 @@ export class MemStorage implements IStorage {
     const session: SearchSession = {
       id,
       ...insertSession,
+      totalItems: insertSession.totalItems || 0,
       processedItems: 0,
       successfulItems: 0,
       results: [],
@@ -90,6 +91,13 @@ export class MemStorage implements IStorage {
     const result: SearchResult = {
       id,
       ...insertResult,
+      site: insertResult.site || '',
+      title: insertResult.title || '',
+      author: insertResult.author || '',
+      publisher: insertResult.publisher || '',
+      price: insertResult.price || '',
+      url: insertResult.url || '',
+      errorMessage: insertResult.errorMessage || null,
       createdAt: new Date(),
     };
     this.searchResults.set(id, result);

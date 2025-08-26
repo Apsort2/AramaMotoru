@@ -32,16 +32,27 @@ export function ResultsPanel({ sessionId }: ResultsPanelProps) {
     refetch: refetchResults,
     isLoading: resultsLoading 
   } = useSearchResults(sessionId);
+
+  // Type guard functions
+  const hasProgressData = (data: any): data is { status: string; processedItems: number; totalItems: number; progress: number } => {
+    return data && typeof data.status === 'string';
+  };
+
+  const hasResultsData = (data: any): data is { results: SearchResult[] } => {
+    return data && Array.isArray(data.results);
+  };
   
   const exportMutation = useExportResults();
 
   // Auto-refresh results when search is completed
   useEffect(() => {
-    if (progressData?.status === 'completed' || progressData?.status === 'failed') {
-      setIsSearching(false);
-      refetchResults();
-    } else if (progressData?.status === 'in_progress') {
-      setIsSearching(true);
+    if (hasProgressData(progressData)) {
+      if (progressData.status === 'completed' || progressData.status === 'failed') {
+        setIsSearching(false);
+        refetchResults();
+      } else if (progressData.status === 'in_progress') {
+        setIsSearching(true);
+      }
     }
   }, [progressData, refetchResults]);
 
@@ -90,9 +101,9 @@ export function ResultsPanel({ sessionId }: ResultsPanelProps) {
     }
   };
 
-  const results = resultsData?.results || [];
+  const results = hasResultsData(resultsData) ? resultsData.results : [];
   const hasResults = results.length > 0;
-  const isSingleResult = results.length === 1 && progressData?.totalItems === 1;
+  const isSingleResult = results.length === 1 && hasProgressData(progressData) && progressData.totalItems === 1;
 
   return (
     <Card>
@@ -127,7 +138,7 @@ export function ResultsPanel({ sessionId }: ResultsPanelProps) {
       </div>
 
       {/* Progress Bar */}
-      {isSearching && progressData && (
+      {isSearching && hasProgressData(progressData) && (
         <div className="px-6 py-4 border-b border-slate-200" data-testid="progress-section">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-slate-700">İlerleme</span>
