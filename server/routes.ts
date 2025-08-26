@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, requireAuth } from "./auth";
 import { singleSearchSchema, bulkSearchSchema } from "@shared/schema";
 import { ISBNSearchService } from "./services/isbn-search";
 import { parseExcelFile, type ExcelParseResult } from "./utils/excel-parser";
@@ -23,10 +24,13 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  setupAuth(app);
+  
   const searchService = new ISBNSearchService();
 
-  // Single ISBN search
-  app.post("/api/search/single", async (req, res) => {
+  // Single ISBN search (protected route)
+  app.post("/api/search/single", requireAuth, async (req, res) => {
     try {
       const { isbn } = singleSearchSchema.parse(req.body);
       
@@ -81,8 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload Excel file for bulk search
-  app.post("/api/search/upload", upload.single('file'), async (req, res) => {
+  // Upload Excel file for bulk search (protected route)
+  app.post("/api/search/upload", requireAuth, upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({
@@ -136,8 +140,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get search progress
-  app.get("/api/search/progress/:sessionId", async (req, res) => {
+  // Get search progress (protected route)
+  app.get("/api/search/progress/:sessionId", requireAuth, async (req, res) => {
     try {
       const { sessionId } = req.params;
       const session = await storage.getSearchSessionBySessionId(sessionId);
@@ -166,8 +170,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get search results
-  app.get("/api/search/results/:sessionId", async (req, res) => {
+  // Get search results (protected route)
+  app.get("/api/search/results/:sessionId", requireAuth, async (req, res) => {
     try {
       const { sessionId } = req.params;
       const results = await storage.getSearchResultsBySessionId(sessionId);
@@ -196,7 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Export results to Excel
-  app.get("/api/search/export/:sessionId", async (req, res) => {
+  app.get("/api/search/export/:sessionId", requireAuth, async (req, res) => {
     try {
       const { sessionId } = req.params;
       const results = await storage.getSearchResultsBySessionId(sessionId);

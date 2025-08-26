@@ -2,9 +2,14 @@ import { useState } from "react";
 import { SearchPanel } from "@/components/search-panel";
 import { ResultsPanel } from "@/components/results-panel";
 import { SiteStatus } from "@/components/site-status";
-import { Book, Globe } from "lucide-react";
+import { Book, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
+  const { user, logout, isLoggingOut } = useAuth();
+  const { toast } = useToast();
   const [currentSessionId, setCurrentSessionId] = useState<string | undefined>();
   const [searchStats, setSearchStats] = useState({
     totalSearches: 0,
@@ -17,6 +22,14 @@ export default function Home() {
       totalSearches: prev.totalSearches + 1,
       successfulSearches: prev.successfulSearches + (successful ? 1 : 0),
     }));
+  };
+
+  const handleLogout = () => {
+    toast({
+      title: 'Çıkış yapılıyor...',
+      description: 'Güvenli çıkış gerçekleştiriliyor.',
+    });
+    logout();
   };
 
   return (
@@ -34,13 +47,30 @@ export default function Home() {
                 <p className="text-sm text-slate-500" data-testid="header-subtitle">Türk Kitap Sitelerinden Hızlı Arama</p>
               </div>
             </div>
-            <div className="hidden md:flex items-center space-x-4">
-              <span className="text-sm text-slate-600" data-testid="developer-info">Geliştirici: Abdullah ÖZMEN</span>
-              <div className="h-6 w-px bg-slate-300"></div>
-              <span className="text-sm text-emerald-600 font-medium" data-testid="status-indicator">
-                <i className="fas fa-circle text-xs mr-1"></i>
-                Çevrimiçi
-              </span>
+            <div className="flex items-center space-x-4">
+              <div className="hidden md:flex items-center space-x-4">
+                <span className="text-sm text-slate-600" data-testid="developer-info">Geliştirici: Abdullah ÖZMEN</span>
+                <div className="h-6 w-px bg-slate-300"></div>
+                <span className="text-sm text-emerald-600 font-medium" data-testid="status-indicator">
+                  <i className="fas fa-circle text-xs mr-1"></i>
+                  Çevrimiçi
+                </span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-slate-700">
+                  Hoş geldin, <span className="font-medium">{user?.user?.username || 'Kullanıcı'}</span>
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  data-testid="button-logout"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  {isLoggingOut ? 'Çıkış yapılıyor...' : 'Çıkış'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

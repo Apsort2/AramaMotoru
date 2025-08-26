@@ -62,7 +62,7 @@ export class BKMScraper extends BaseScraper {
     }
   }
 
-  private extractBookInfo($: cheerio.CheerioAPI, element: cheerio.Cheerio<cheerio.Element>, isbn: string, searchUrl: string): SearchResponse {
+  private extractBookInfo($: cheerio.CheerioAPI, element: cheerio.Cheerio<any>, isbn: string, searchUrl: string): SearchResponse {
     // Try multiple selectors for title
     const titleSelectors = ['.product-name a', '.book-title', '.title', 'h3 a', 'h2 a'];
     let title = '';

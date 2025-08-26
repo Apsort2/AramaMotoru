@@ -11,14 +11,13 @@ export class ISBNSearchService {
   private scrapers: Map<string, any>;
 
   constructor() {
-    this.scrapers = new Map([
-      ['Babil', new BabilScraper()],
-      ['D&R', new DRScraper()],
-      ['Kitapsec', new KitapsecScraper()],
-      ['BKM Kitap', new BKMScraper()],
-      ['Amazon', new AmazonScraper()],
-      ['Google Books', new GoogleScraper()],
-    ]);
+    this.scrapers = new Map();
+    this.scrapers.set('Babil', new BabilScraper());
+    this.scrapers.set('D&R', new DRScraper());
+    this.scrapers.set('Kitapsec', new KitapsecScraper());
+    this.scrapers.set('BKM Kitap', new BKMScraper());
+    this.scrapers.set('Amazon', new AmazonScraper());
+    this.scrapers.set('Google Books', new GoogleScraper());
   }
 
   async searchSingle(isbn: string): Promise<SearchResponse> {
