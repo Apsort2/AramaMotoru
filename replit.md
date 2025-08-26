@@ -77,5 +77,7 @@ The backend implements a service-oriented architecture with dedicated scrapers f
 - **D&R**: Major Turkish book and media retailer  
 - **Kitapsec**: Online book platform
 - **BKM Kitap**: Turkish book marketplace
+- **Amazon**: International book marketplace with Turkish content
+- **Google Books**: Google's book search and preview service
 
 The application is designed for scalability with clear interfaces that allow easy addition of new book sites and storage backends.

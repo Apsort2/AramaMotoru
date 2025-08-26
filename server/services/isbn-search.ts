@@ -2,6 +2,8 @@ import { BabilScraper } from "./scrapers/babil-scraper";
 import { DRScraper } from "./scrapers/dr-scraper";
 import { KitapsecScraper } from "./scrapers/kitapsec-scraper";
 import { BKMScraper } from "./scrapers/bkm-scraper";
+import { AmazonScraper } from "./scrapers/amazon-scraper";
+import { GoogleScraper } from "./scrapers/google-scraper";
 import type { BookData, SearchResponse } from "@shared/schema";
 import type { IStorage } from "../storage";
 
@@ -14,6 +16,8 @@ export class ISBNSearchService {
       ['D&R', new DRScraper()],
       ['Kitapsec', new KitapsecScraper()],
       ['BKM Kitap', new BKMScraper()],
+      ['Amazon', new AmazonScraper()],
+      ['Google Books', new GoogleScraper()],
     ]);
   }
 
