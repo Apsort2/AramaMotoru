@@ -12,20 +12,19 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/auth/logout', {
-        method: 'POST',
-      });
+      return await apiRequest('/api/auth/logout');
     },
     onSuccess: () => {
       queryClient.setQueryData(['/api/auth/user'], null);
-      queryClient.clear();
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      window.location.reload();
     },
   });
 
   return {
     user,
     isLoading,
-    isAuthenticated: !!user?.user,
+    isAuthenticated: !!user,
     logout: logoutMutation.mutate,
     isLoggingOut: logoutMutation.isPending,
   };

@@ -8,6 +8,8 @@ import { parseExcelFile, type ExcelParseResult } from "./utils/excel-parser";
 import { exportToExcel } from "./utils/excel-exporter";
 import multer from "multer";
 import { randomUUID } from "crypto";
+import fs from "fs/promises";
+import path from "path";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -243,6 +245,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ↓ DEBUG LOGS ENDPOINT
+  app.get("/api/debug/logs", requireAuth, async (req, res) => {
+    try {
+      const linesParam = parseInt(String(req.query.lines || "500"), 10);
+      const lineCount = isNaN(linesParam) || linesParam <= 0 ? 500 : linesParam;
+
+      const logPath = path.resolve(__dirname, "../log.txt");
+      const content = await fs.readFile(logPath, "utf8");
+      const allLines = content.split(/\r?\n/);
+      const lastLines = allLines.slice(-lineCount);
+
+      res.json({ success: true, lines: lastLines });
+    } catch (error) {
+      console.error("Debug logs endpoint error:", error);
+      res.status(500).json({ success: false, error: "Loglar okunamadı" });
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }

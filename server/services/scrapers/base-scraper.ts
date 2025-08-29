@@ -25,22 +25,19 @@ export abstract class BaseScraper {
     }
   }
 
-  protected async makeRequest(url: string): Promise<string> {
+  protected async makeRequest(url: string, init?: RequestInit): Promise<string> {
     try {
+      const defaultHeaders = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7'
+      };
+
       const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-          'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1',
-          'Sec-Fetch-Dest': 'document',
-          'Sec-Fetch-Mode': 'navigate',
-          'Sec-Fetch-Site': 'none',
-          'Cache-Control': 'max-age=0',
-        },
-        redirect: 'follow',
+        // varsayılan ayarları isteğe özel gelenlerle birleştir
+        ...init,
+        headers: { ...defaultHeaders, ...(init?.headers ?? {}) },
+        redirect: 'follow'
       });
 
       if (!response.ok) {
@@ -49,9 +46,8 @@ export abstract class BaseScraper {
 
       return await response.text();
     } catch (error) {
-      // If request fails, simulate successful response for demo
-      console.warn(`Request failed for ${url}:`, error);
-      return '<html><body>Demo response - site temporarily unavailable</body></html>';
+      console.error(`Request failed for ${url}:`, error);
+      throw error;
     }
   }
 

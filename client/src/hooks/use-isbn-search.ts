@@ -12,10 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 
 export function useSingleSearch() {
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (isbn: string): Promise<SingleSearchResponse> => {
-      const response = await apiRequest("POST", "/api/search/single", { isbn });
+      // ✅ DÜZELTİLDİ: Önce URL, sonra method, sonra data
+      const response = await apiRequest("/api/search/single", "POST", { isbn });
       return await response.json();
     },
     onSuccess: (data) => {
@@ -45,22 +46,22 @@ export function useSingleSearch() {
 
 export function useBulkSearch() {
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (file: File): Promise<BulkSearchResponse> => {
       const formData = new FormData();
       formData.append('file', file);
-      
+
       const response = await fetch("/api/search/upload", {
         method: "POST",
         body: formData,
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Dosya yükleme hatası');
       }
-      
+
       return await response.json();
     },
     onSuccess: (data) => {
@@ -106,16 +107,16 @@ export function useSiteStatus() {
 
 export function useExportResults() {
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (sessionId: string) => {
       const response = await fetch(`/api/search/export/${sessionId}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Export hatası');
       }
-      
+
       // Create download link
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);

@@ -23,7 +23,7 @@ function AppRouter() {
   }
 
   if (!isAuthenticated) {
-    return <LoginForm onLoginSuccess={() => window.location.reload()} />;
+    return <LoginForm />;
   }
 
   return (

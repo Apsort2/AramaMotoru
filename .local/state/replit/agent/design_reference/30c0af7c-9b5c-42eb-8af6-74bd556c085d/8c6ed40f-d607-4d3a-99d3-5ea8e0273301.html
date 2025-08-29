@@ -1,0 +1,477 @@
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 ISBN Arama Uygulaması</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#EFF6FF',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 font-inter">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-primary-600 text-white p-2 rounded-lg">
+                        <i class="fas fa-book text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-800">ISBN Arama</h1>
+                        <p class="text-sm text-slate-500">Türk Kitap Sitelerinden Hızlı Arama</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <span class="text-sm text-slate-600">Geliştirici: Abdullah ÖZMEN</span>
+                    <div class="h-6 w-px bg-slate-300"></div>
+                    <span class="text-sm text-emerald-600 font-medium">
+                        <i class="fas fa-circle text-xs mr-1"></i>
+                        Çevrimiçi
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- @COMPONENT: SearchPanel -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h2 class="text-lg font-semibold text-slate-800 mb-6 flex items-center">
+                        <i class="fas fa-search text-primary-600 mr-2"></i>
+                        Arama Paneli
+                    </h2>
+
+                    <!-- Single ISBN Search -->
+                    <div class="mb-8">
+                        <h3 class="text-sm font-medium text-slate-700 mb-4">Tekli ISBN Arama</h3>
+                        <div class="space-y-4">
+                            <div class="relative">
+                                <input type="text" 
+                                       id="isbn-input" 
+                                       data-bind="isbnValue"
+                                       class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors peer"
+                                       placeholder="10-13 haneli ISBN giriniz">
+                                <label for="isbn-input" class="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-slate-600">
+                                    ISBN Numarası
+                                </label>
+                            </div>
+                            <button data-event="click:handleSingleSearch" 
+                                    class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center">
+                                <i class="fas fa-search mr-2"></i>
+                                Ara
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Search Section -->
+                    <div class="border-t border-slate-200 pt-8">
+                        <h3 class="text-sm font-medium text-slate-700 mb-4">Toplu Arama</h3>
+                        <div class="space-y-4">
+                            <!-- File Upload Area -->
+                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer"
+                                 data-event="click:openFileDialog">
+                                <div class="space-y-2">
+                                    <i class="fas fa-cloud-upload-alt text-3xl text-slate-400"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-slate-600">Excel dosyası yükleyin</p>
+                                        <p class="text-xs text-slate-500">ya da sürükleyip bırakın</p>
+                                    </div>
+                                    <p class="text-xs text-slate-400">.xlsx formatı desteklenir</p>
+                                </div>
+                            </div>
+
+                            <!-- Selected File Display -->
+                            <div data-mock="true" class="hidden bg-slate-50 rounded-lg p-3 border border-slate-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-file-excel text-emerald-600"></i>
+                                        <span class="text-sm text-slate-700" data-bind="selectedFileName">kitap_listesi.xlsx</span>
+                                    </div>
+                                    <button class="text-slate-400 hover:text-slate-600">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button data-event="click:handleBulkSearch" 
+                                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-table mr-2"></i>
+                                Toplu Arama Başlat
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search Statistics -->
+                    <div class="border-t border-slate-200 pt-6 mt-8">
+                        <h3 class="text-sm font-medium text-slate-700 mb-3">İstatistikler</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-3 bg-slate-50 rounded-lg">
+                                <div class="text-lg font-bold text-slate-800" data-bind="totalSearches">0</div>
+                                <div class="text-xs text-slate-500">Toplam Arama</div>
+                            </div>
+                            <div class="text-center p-3 bg-slate-50 rounded-lg">
+                                <div class="text-lg font-bold text-emerald-600" data-bind="successfulSearches">0</div>
+                                <div class="text-xs text-slate-500">Başarılı</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: SearchPanel -->
+
+            <!-- @COMPONENT: ResultsPanel -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                    <!-- Results Header -->
+                    <div class="px-6 py-4 border-b border-slate-200">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-semibold text-slate-800 flex items-center">
+                                <i class="fas fa-list-alt text-primary-600 mr-2"></i>
+                                Arama Sonuçları
+                            </h2>
+                            <div class="flex items-center space-x-3">
+                                <!-- @STATE: isSearching:boolean = false -->
+                                <div data-mock="true" class="hidden flex items-center space-x-2 text-sm text-amber-600">
+                                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-amber-600 border-t-transparent"></div>
+                                    <span>Arama yapılıyor...</span>
+                                </div>
+                                <button data-event="click:exportResults" 
+                                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors flex items-center">
+                                    <i class="fas fa-download mr-2"></i>
+                                    İndir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar (shown during bulk search) -->
+                    <div data-mock="true" class="hidden px-6 py-4 border-b border-slate-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-slate-700">İlerleme</span>
+                            <span class="text-sm text-slate-500" data-bind="progressText">75 / 100 tamamlandı</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2">
+                            <div class="bg-primary-600 h-2 rounded-full transition-all duration-300" style="width: 75%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Results Content -->
+                    <div class="p-6">
+                        <!-- Empty State -->
+                        <div data-mock="true" class="text-center py-12">
+                            <div class="mx-auto w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                <i class="fas fa-search text-2xl text-slate-400"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-slate-800 mb-2">Henüz arama yapılmadı</h3>
+                            <p class="text-slate-500 max-w-sm mx-auto">
+                                Tek ISBN araması yapın veya Excel dosyası yükleyerek toplu arama başlatın.
+                            </p>
+                        </div>
+
+                        <!-- Results Table -->
+                        <div data-mock="true" class="hidden overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-slate-200">
+                                        <th class="text-left py-3 px-4 font-medium text-slate-700 text-sm">ISBN</th>
+                                        <th class="text-left py-3 px-4 font-medium text-slate-700 text-sm">Site</th>
+                                        <th class="text-left py-3 px-4 font-medium text-slate-700 text-sm">Kitap Adı</th>
+                                        <th class="text-left py-3 px-4 font-medium text-slate-700 text-sm">Yazar</th>
+                                        <th class="text-left py-3 px-4 font-medium text-slate-700 text-sm">Fiyat</th>
+                                        <th class="text-left py-3 px-4 font-medium text-slate-700 text-sm">Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- @MAP: searchResults.map(result => ( -->
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="py-3 px-4 text-sm font-mono text-slate-600" data-bind="result.isbn">9789750719387</td>
+                                        <td class="py-3 px-4 text-sm">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                D&R
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4 text-sm text-slate-800 font-medium" data-bind="result.title">Suç ve Ceza</td>
+                                        <td class="py-3 px-4 text-sm text-slate-600" data-bind="result.author">Fyodor Dostoyevski</td>
+                                        <td class="py-3 px-4 text-sm font-medium text-slate-800" data-bind="result.price">24,90 TL</td>
+                                        <td class="py-3 px-4 text-sm">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                <i class="fas fa-check mr-1"></i>
+                                                Bulundu
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="py-3 px-4 text-sm font-mono text-slate-600">9789753638029</td>
+                                        <td class="py-3 px-4 text-sm">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Babil
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4 text-sm text-slate-800 font-medium">İnsan Nedir?</td>
+                                        <td class="py-3 px-4 text-sm text-slate-600">Mark Twain</td>
+                                        <td class="py-3 px-4 text-sm font-medium text-slate-800">18,75 TL</td>
+                                        <td class="py-3 px-4 text-sm">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                <i class="fas fa-check mr-1"></i>
+                                                Bulundu
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="py-3 px-4 text-sm font-mono text-slate-600">9781234567890</td>
+                                        <td class="py-3 px-4 text-sm">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                                                -
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4 text-sm text-slate-500">-</td>
+                                        <td class="py-3 px-4 text-sm text-slate-500">-</td>
+                                        <td class="py-3 px-4 text-sm text-slate-500">-</td>
+                                        <td class="py-3 px-4 text-sm">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <i class="fas fa-times mr-1"></i>
+                                                Bulunamadı
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Single Search Result Card -->
+                        <div data-mock="true" class="hidden">
+                            <div class="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-6 border border-emerald-200">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="bg-emerald-600 text-white p-2 rounded-lg">
+                                            <i class="fas fa-book"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold text-slate-800" data-bind="bookResult.title">Suç ve Ceza</h3>
+                                            <p class="text-sm text-slate-600" data-bind="bookResult.author">Fyodor Dostoyevski</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                        D&R
+                                    </span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-slate-500">ISBN:</span>
+                                        <span class="font-mono font-medium text-slate-800 ml-2" data-bind="bookResult.isbn">9789750719387</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500">Fiyat:</span>
+                                        <span class="font-semibold text-emerald-600 ml-2" data-bind="bookResult.price">24,90 TL</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500">Durum:</span>
+                                        <span class="text-emerald-600 font-medium ml-2">Stokta</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: ResultsPanel -->
+        </div>
+
+        <!-- @COMPONENT: SiteStatus -->
+        <div class="mt-8">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                    <i class="fas fa-globe text-primary-600 mr-2"></i>
+                    Site Durumu
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- @MAP: supportedSites.map(site => ( -->
+                    <div class="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                                D
+                            </div>
+                            <span class="font-medium text-slate-700">D&R</span>
+                        </div>
+                        <div class="flex items-center space-x-1 text-emerald-600">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span class="text-sm font-medium">Aktif</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                                B
+                            </div>
+                            <span class="font-medium text-slate-700">Babil</span>
+                        </div>
+                        <div class="flex items-center space-x-1 text-emerald-600">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span class="text-sm font-medium">Aktif</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                                K
+                            </div>
+                            <span class="font-medium text-slate-700">Kitapsec</span>
+                        </div>
+                        <div class="flex items-center space-x-1 text-emerald-600">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span class="text-sm font-medium">Aktif</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                                B
+                            </div>
+                            <span class="font-medium text-slate-700">BKM Kitap</span>
+                        </div>
+                        <div class="flex items-center space-x-1 text-emerald-600">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span class="text-sm font-medium">Aktif</span>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: SiteStatus -->
+    </div>
+
+    <!-- @COMPONENT: ToastNotification -->
+    <div data-mock="true" class="hidden fixed top-4 right-4 z-50">
+        <div class="bg-white border border-slate-200 rounded-lg shadow-lg p-4 max-w-sm">
+            <div class="flex items-start space-x-3">
+                <div class="bg-emerald-100 rounded-full p-1">
+                    <i class="fas fa-check text-emerald-600 text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-medium text-slate-800 text-sm">Arama tamamlandı</h4>
+                    <p class="text-slate-600 text-xs mt-1">3 sonuç bulundu</p>
+                </div>
+                <button class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ToastNotification -->
+
+    <!-- @COMPONENT: FileUploadModal -->
+    <div data-mock="true" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-slate-900 bg-opacity-50 transition-opacity"></div>
+            <div class="bg-white rounded-xl shadow-xl max-w-md w-full relative">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Excel Dosyası Yükle</h3>
+                        <button class="text-slate-400 hover:text-slate-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-4"></i>
+                            <p class="text-slate-600 font-medium mb-2">Dosyayı sürükleyin veya seçin</p>
+                            <p class="text-slate-500 text-sm">Yalnızca .xlsx dosyaları desteklenir</p>
+                            <button class="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                                Dosya Seç
+                            </button>
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            <strong>Not:</strong> Excel dosyanızın ilk sütununda ISBN numaraları bulunmalıdır.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: FileUploadModal -->
+
+    <script>
+        (function() {
+            // TODO: Implement business logic, API calls, and state management
+            
+            // Mock functionality for demonstration
+            const mockSearchResults = [
+                {
+                    isbn: '9789750719387',
+                    site: 'D&R',
+                    title: 'Suç ve Ceza',
+                    author: 'Fyodor Dostoyevski',
+                    price: '24,90 TL',
+                    status: 'found'
+                },
+                {
+                    isbn: '9789753638029', 
+                    site: 'Babil',
+                    title: 'İnsan Nedir?',
+                    author: 'Mark Twain',
+                    price: '18,75 TL',
+                    status: 'found'
+                }
+            ];
+
+            // ISBN validation
+            function validateISBN(isbn) {
+                const cleaned = isbn.replace(/[-\s]/g, '');
+                return cleaned.length === 10 || cleaned.length === 13;
+            }
+
+            // Mock search functionality
+            function performSingleSearch(isbn) {
+                // TODO: Implement actual search API call
+                console.log('Searching for ISBN:', isbn);
+            }
+
+            function performBulkSearch(file) {
+                // TODO: Implement Excel parsing and bulk search
+                console.log('Processing file:', file.name);
+            }
+
+            // File upload handling
+            function handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (file && file.name.endsWith('.xlsx')) {
+                    performBulkSearch(file);
+                }
+            }
+
+            // Export functionality
+            function exportToExcel() {
+                // TODO: Implement Excel export
+                console.log('Exporting results to Excel');
+            }
+
+            // Event listeners would be attached here in real implementation
+            // Example: document.getElementById('search-button').addEventListener('click', handleSearch);
+        })();
+    </script>
+</body>
+</html>

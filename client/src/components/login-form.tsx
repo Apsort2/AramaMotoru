@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
@@ -15,23 +16,22 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
-      return await apiRequest('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      // ✅ Doğru parametre sırası: önce URL, sonra method, sonra data
+      const response = await apiRequest('/api/auth/login', 'POST', credentials);
+      return await response.json();
     },
     onSuccess: () => {
       toast({
         title: 'Başarılı!',
         description: 'Giriş yapıldı. Hoş geldiniz!',
       });
-      onLoginSuccess();
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      navigate('/');
     },
     onError: (error: Error) => {
       toast({
@@ -80,7 +80,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
                 disabled={loginMutation.isPending}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Şifre</Label>
               <Input

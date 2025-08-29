@@ -1,9 +1,18 @@
-import { BabilScraper } from "./scrapers/babil-scraper";
-import { DRScraper } from "./scrapers/dr-scraper";
-import { KitapsecScraper } from "./scrapers/kitapsec-scraper";
-import { BKMScraper } from "./scrapers/bkm-scraper";
-import { AmazonScraper } from "./scrapers/amazon-scraper";
+// Temporarily comment out BabilScraper import until module is available
+// import { BabilScraper } from "./scrapers/babil-scraper";
+// Temporarily comment out DRScraper import until module is available
+// import { DRScraper } from "./scrapers/dr-scraper";
+// Temporarily comment out KitapsecScraper import until module is available
+// import { KitapsecScraper } from "./scrapers/kitapsec-scraper";
+// Temporarily comment out BKMScraper import until module is available
+// import { BKMScraper } from "./scrapers/bkm-scraper";
+// Temporarily comment out AmazonScraper import until module is available
+// import { AmazonScraper } from "./scrapers/amazon-scraper";
+// Temporarily comment out GoogleScraper import until module is available
+// import { GoogleScraper } from "./scrapers/google-scraper";
+import { OpenLibraryScraper } from "./scrapers/openlibrary-scraper";
 import { GoogleScraper } from "./scrapers/google-scraper";
+import { AmazonScraper } from "./scrapers/amazon-scraper";
 import type { BookData, SearchResponse } from "@shared/schema";
 import type { IStorage } from "../storage";
 
@@ -12,12 +21,10 @@ export class ISBNSearchService {
 
   constructor() {
     this.scrapers = new Map();
-    this.scrapers.set('Babil', new BabilScraper());
-    this.scrapers.set('D&R', new DRScraper());
-    this.scrapers.set('Kitapsec', new KitapsecScraper());
-    this.scrapers.set('BKM Kitap', new BKMScraper());
-    this.scrapers.set('Amazon', new AmazonScraper());
+    // Çift OpenLibrary satırı kaldırıldı, Google Books ve Amazon scrapers doğru sırayla eklendi
+    this.scrapers.set('Open Library', new OpenLibraryScraper());
     this.scrapers.set('Google Books', new GoogleScraper());
+    this.scrapers.set('Amazon', new AmazonScraper());
   }
 
   async searchSingle(isbn: string): Promise<SearchResponse> {

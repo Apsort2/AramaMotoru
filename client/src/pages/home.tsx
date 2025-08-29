@@ -58,7 +58,7 @@ export default function Home() {
               </div>
               <div className="flex items-center space-x-3">
                 <span className="text-sm text-slate-700">
-                  Hoş geldin, <span className="font-medium">{user?.user?.username || 'Kullanıcı'}</span>
+                  Hoş geldin, <span className="font-medium">{(user as { username: string })?.username || 'Kullanıcı'}</span>
                 </span>
                 <Button 
                   variant="outline" 

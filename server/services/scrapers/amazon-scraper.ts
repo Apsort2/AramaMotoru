@@ -1,151 +1,84 @@
 import { BaseScraper } from "./base-scraper";
 import type { SearchResponse } from "@shared/schema";
-import * as cheerio from "cheerio";
 
 export class AmazonScraper extends BaseScraper {
   constructor() {
-    super('https://www.amazon.com.tr', 'Amazon');
+    super("https://www.amazon.com.tr", "Amazon");
+  }
+
+  async checkStatus(): Promise<boolean> {
+    try {
+      const response = await fetch(this.baseUrl, {
+        method: 'HEAD',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        },
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
   }
 
   async search(isbn: string): Promise<SearchResponse> {
     try {
-      // Try multiple search URL formats for Amazon
-      const searchUrls = [
-        `${this.baseUrl}/s?k=${isbn}&i=stripbooks`,
-        `${this.baseUrl}/s?field-keywords=${isbn}`,
-        `${this.baseUrl}/dp/${isbn}`,
-        `${this.baseUrl}/s?k=${isbn}&ref=nb_sb_noss`
-      ];
+      // Amazon search URL pattern for books by ISBN
+      const searchUrl = `${this.baseUrl}/s?k=${isbn}`;
+      const html = await this.makeRequest(searchUrl, {
+        headers:
+          {
+            "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+          },
+      });
 
-      for (const searchUrl of searchUrls) {
-        try {
-          const html = await this.makeRequest(searchUrl);
-          const $ = cheerio.load(html);
+      // Regex to find the first product link that likely contains the book details
+      const productLinkMatch = html.match(/<a class="a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal" href="([^"]+)">/);
 
-          // Try multiple selectors for book results
-          const selectors = [
-            '[data-component-type="s-search-result"]',
-            '.s-result-item',
-            '.sg-col-inner .s-widget-container',
-            '[data-index]'
-          ];
-
-          for (const selector of selectors) {
-            const bookElement = $(selector).first();
-            
-            if (bookElement.length > 0) {
-              const result = this.extractBookInfo($, bookElement, isbn, searchUrl);
-              if (result.success) {
-                return result;
-              }
-            }
-          }
-        } catch (error) {
-          continue;
-        }
+      if (!productLinkMatch || !productLinkMatch[1]) {
+        return {
+          success: false,
+          error: "Amazon arama sonuçlarında ürün linki bulunamadı.",
+        };
       }
 
-      // Return realistic demo data for Amazon
-      return this.createDemoResult(isbn);
+      const productUrl = `${this.baseUrl}${productLinkMatch[1]}`;
+      const productHtml = await this.makeRequest(productUrl, {
+        headers:
+          {
+            "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+          },
+      });
+
+      // Basic regex for title extraction (Amazon pages include <span id="productTitle">)
+      const titleMatch = productHtml.match(/<span[^>]*id="productTitle"[^>]*>([^<]+)<\/span>/i);
+      const authorMatch = productHtml.match(/<a[^>]*class="a-link-normal contributorNameID"[^>]*>([^<]+)<\/a>/i);
+      const publisherMatch = productHtml.match(/Yayınevi(?:\s*:)\s*<span[^>]*>([^<]+)<\/span>/i);
+
+      if (titleMatch) {
+        return {
+          success: true,
+          data: {
+            isbn,
+            title: this.cleanText(titleMatch[1]),
+            author: authorMatch ? this.cleanText(authorMatch[1]) : "",
+            publisher: publisherMatch ? this.cleanText(publisherMatch[1]) : "",
+            price: "",
+            url: productUrl,
+            // kitap bilgisi dönerken site alanı eklendi
+            site: this.siteName,
+          },
+        };
+      }
+
+      return {
+        success: false,
+        error: "ISBN Amazon üzerinde bulunamadı",
+      };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Amazon arama hatası',
+        error: error instanceof Error ? error.message : "Bilinmeyen hata",
       };
     }
-  }
-
-  private extractBookInfo($: cheerio.CheerioAPI, element: cheerio.Cheerio<any>, isbn: string, searchUrl: string): SearchResponse {
-    // Try multiple selectors for title
-    const titleSelectors = [
-      'h2 a span', 
-      '.s-size-mini span', 
-      '[data-cy="title-recipe-main"]',
-      'h2.s-size-mini a span'
-    ];
-    let title = '';
-    for (const sel of titleSelectors) {
-      title = this.cleanText(element.find(sel).first().text());
-      if (title) break;
-    }
-
-    // Try multiple selectors for author
-    const authorSelectors = [
-      '.a-size-base + .a-size-base a',
-      '[data-cy="title-recipe-secondary"]',
-      '.s-size-base-plus',
-      '.a-row .a-size-base'
-    ];
-    let author = '';
-    for (const sel of authorSelectors) {
-      author = this.cleanText(element.find(sel).first().text());
-      if (author && !author.includes('₺') && !author.includes('TL')) break;
-    }
-
-    // Try multiple selectors for price
-    const priceSelectors = [
-      '.a-price-whole',
-      '.a-price .a-offscreen',
-      '.a-price-symbol + .a-price-whole',
-      '.s-price-label + .a-price'
-    ];
-    let price = '';
-    for (const sel of priceSelectors) {
-      price = this.extractPrice(element.find(sel).first().text());
-      if (price) break;
-    }
-
-    if (!title) {
-      return { success: false, error: 'Kitap bilgileri eksik' };
-    }
-
-    return {
-      success: true,
-      data: {
-        isbn,
-        title,
-        author: author || 'Yazar bilgisi bulunamadı',
-        publisher: 'Amazon Yayınları',
-        price: price || 'Fiyat bilgisi bulunamadı',
-        url: searchUrl,
-        site: this.siteName,
-      },
-    };
-  }
-
-  private createDemoResult(isbn: string): SearchResponse {
-    // Create realistic book data based on the ISBN
-    const bookTitles = [
-      'Psikoloji ve Terapi Üzerine',
-      'Modern Eğitim Yaklaşımları', 
-      'Bilim ve Felsefe',
-      'Çağdaş Düşünce Sistemleri',
-      'Sosyal Bilimler Araştırması'
-    ];
-    
-    const authors = [
-      'Dr. Ahmet Yılmaz',
-      'Prof. Dr. Ayşe Kaya', 
-      'Mehmet Özkan',
-      'Dr. Fatma Demir',
-      'Hasan Çelik'
-    ];
-
-    const randomTitle = bookTitles[Math.floor(Math.random() * bookTitles.length)];
-    const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
-    const randomPrice = (Math.random() * 50 + 20).toFixed(2);
-
-    return {
-      success: true,
-      data: {
-        isbn,
-        title: randomTitle,
-        author: randomAuthor,
-        publisher: 'Amazon Türkiye',
-        price: `${randomPrice} TL`,
-        url: `${this.baseUrl}/dp/${isbn}`,
-        site: this.siteName,
-      },
-    };
   }
 }

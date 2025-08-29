@@ -7,9 +7,10 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// ✅ Doğru parametre sırası: url, method, data
 export async function apiRequest(
-  method: string,
-  url: string,
+  url: string, // ÖNCE URL
+  method: string = "GET", // SONRA METHOD
   data?: unknown | undefined,
 ): Promise<Response> {
   const res = await fetch(url, {
@@ -24,6 +25,7 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
+
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
