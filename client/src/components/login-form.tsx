@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +6,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
+import { useState } from 'react';
 
-interface LoginFormProps {
-  onLoginSuccess: () => void;
-}
-
-export function LoginForm({ onLoginSuccess }: LoginFormProps) {
+export function LoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { toast } = useToast();

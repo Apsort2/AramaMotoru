@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
+// Removed duplicate import since useQuery is already imported in line 1
+// Removed duplicate import since useMutation is already imported in line 1
+// Removed duplicate import since useQueryClient is already imported in line 1
+
 export function useAuth() {
   const queryClient = useQueryClient();
 
